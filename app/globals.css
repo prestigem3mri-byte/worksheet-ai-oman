@@ -95,3 +95,71 @@ body { font-family: system-ui, -apple-system, Segoe UI, Arial; background: var(-
   body { background: #fff; }
   .card { border: none; }
 }
+@media print {
+  /* اخفاء أي عنصر عليه hide-print وقت الطباعة فقط */
+  .hide-print {
+    display: none !important;
+  }
+
+  /* تكبير الخط داخل الـPDF */
+  body {
+    font-size: 18px !important;
+  }
+
+  h1 { font-size: 30px !important; }
+  h2 { font-size: 24px !important; }
+
+  p, li, .question {
+    font-size: 18px !important;
+    line-height: 1.8 !important;
+  }
+
+  /* اختياري: منع أي أزرار تطلع في الـPDF */
+  .no-print {
+    display: none !important;
+  }
+}
+@media print {
+  body {
+    font-size: 20px;
+    line-height: 1.9;
+  }
+
+  .h2 {
+    font-size: 28px;
+  }
+
+  .studentLine {
+    display: flex;
+    gap: 16px;
+    flex-wrap: wrap;
+    margin: 16px 0 18px;
+    padding: 12px 14px;
+    border: 2px solid #000;
+    border-radius: 10px;
+    font-size: 20px;
+    font-weight: 500;
+  }
+
+  .qTitle {
+    font-size: 21px;
+    margin-bottom: 6px;
+  }
+
+  .opts li {
+    font-size: 20px;
+    margin-bottom: 4px;
+  }
+
+  .ans,
+  .exp {
+    font-size: 19px;
+    margin-top: 6px;
+  }
+
+  /* اخفاء أي عنصر ما نريده في PDF */
+  .hide-print,
+  .no-print {
+    display: none !important;
+  }
+}

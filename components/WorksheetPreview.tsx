@@ -18,6 +18,7 @@ export default function WorksheetPreview(props: {
 
   return (
     <div className="preview card">
+      {/* عنوان الورقة */}
       <div className="previewHead">
         <div>
           <h2 className="h2">{data.title}</h2>
@@ -28,8 +29,17 @@ export default function WorksheetPreview(props: {
         <div className="muted">عدد الأسئلة: {data.count}</div>
       </div>
 
+      {/* سطر بيانات الطالب (يظهر في PDF) */}
+      <div className="studentLine">
+        <div>اسم الطالب/ة: ____________________</div>
+        <div>الصف: {data.grade}</div>
+        <div>الشعبة: ________</div>
+        <div>التاريخ: ____ / ____ / ____</div>
+      </div>
+
       <div className="line" />
 
+      {/* الأسئلة */}
       {data.questions.map((q, idx) => (
         <div key={q.id} className="q">
           <div className="qTitle">
@@ -44,10 +54,16 @@ export default function WorksheetPreview(props: {
             </ul>
           ) : null}
 
-          {props.showAnswers ? <div className="ans"><b>الإجابة:</b> {q.answer}</div> : null}
+          {props.showAnswers ? (
+            <div className="ans">
+              <b>الإجابة:</b> {q.answer}
+            </div>
+          ) : null}
 
           {props.showExplanations && q.explanation ? (
-            <div className="exp"><b>التفسير:</b> {q.explanation}</div>
+            <div className="exp">
+              <b>التفسير:</b> {q.explanation}
+            </div>
           ) : null}
 
           <div className="sp" />
