@@ -36,6 +36,7 @@ export default function Page() {
   const [subject, setSubject] = useState(defaultSubject);
 
   useEffect(() => {
+    // إذا المستخدم ما اختار مادة يدويًا، نخليها تتبع الصف
     setSubject((prev) => (prev ? prev : defaultSubject));
   }, [defaultSubject]);
 
@@ -58,7 +59,11 @@ export default function Page() {
 
   async function generate() {
     if (!topic.trim()) {
-      setToast({ kind: "danger", title: "نقص البيانات", message: "اكتبي موضوع الدرس أولاً." });
+      setToast({
+        kind: "danger",
+        title: "نقص البيانات",
+        message: "اكتبي موضوع الدرس أولاً.",
+      });
       return;
     }
 
@@ -126,7 +131,7 @@ export default function Page() {
       setToast({ kind: "danger", title: "تنبيه", message: "ولّدي الأسئلة أولاً." });
       return;
     }
-    window.print(); // من نافذة الطباعة: Save as PDF
+    window.print();
   }
 
   async function downloadWord() {
@@ -138,14 +143,39 @@ export default function Page() {
     try {
       const { Document, Packer, Paragraph, TextRun } = await import("docx");
 
-      const title = `${data.mode === "practice" ? "ورقة عمل تدريبية" : "مسابقة"} في ${data.subject} – ${data.topic}`;
+      // docx size = نصف نقطة
+      const S = {
+        title: 44, // 22pt
+        subtitle: 32, // 16pt
+        meta: 30, // 15pt
+        q: 32, // 16pt
+        opt: 30, // 15pt
+        ans: 30, // 15pt
+        exp: 28, // 14pt
+      };
+
+      const title = `${
+        data.mode === "practice" ? "ورقة عمل تدريبية" : "مسابقة"
+      } في ${data.subject} – ${data.topic}`;
       const subtitle = `${data.grade} — عدد الأسئلة: ${data.count}`;
 
       const children: any[] = [
-        new Paragraph({ children: [new TextRun({ text: title, bold: true, size: 34 })] }),
-        new Paragraph({ children: [new TextRun({ text: subtitle, size: 24 })] }),
+        new Paragraph({
+          children: [new TextRun({ text: title, bold: true, size: S.title })],
+        }),
+        new Paragraph({
+          children: [new TextRun({ text: subtitle, size: S.subtitle })],
+        }),
         new Paragraph(""),
-        new Paragraph("اسم الطالب/ة: ____________________     الشعبة: ________     التاريخ: ____/____/____"),
+        new Paragraph({
+          children: [
+            new TextRun({
+              text:
+                "اسم الطالب/ة: ____________________     الصف: __________     الشعبة: ________     التاريخ: ____/____/____",
+              size: S.meta,
+            }),
+          ],
+        }),
         new Paragraph(""),
       ];
 
@@ -153,27 +183,50 @@ export default function Page() {
         children.push(
           new Paragraph({
             children: [
-              new TextRun({ text: `السؤال ${idx + 1}: `, bold: true }),
-              new TextRun({ text: q.question }),
+              new TextRun({ text: `السؤال ${idx + 1}: `, bold: true, size: S.q }),
+              new TextRun({ text: q.question, size: S.q }),
             ],
           })
         );
 
         if (q.options?.length) {
-          q.options.forEach((opt) => children.push(new Paragraph(`• ${opt}`)));
+          q.options.forEach((opt) =>
+            children.push(
+              new Paragraph({
+                children: [new TextRun({ text: `• ${opt}`, size: S.opt })],
+              })
+            )
+          );
         }
 
         if (showAnswers) {
-          children.push(new Paragraph({ children: [new TextRun({ text: `الإجابة: ${q.answer}`, bold: true })] }));
+          children.push(
+            new Paragraph({
+              children: [
+                new TextRun({
+                  text: `الإجابة: ${q.answer}`,
+                  bold: true,
+                  size: S.ans,
+                }),
+              ],
+            })
+          );
+
           if (showExplanations && q.explanation) {
-            children.push(new Paragraph({ children: [new TextRun({ text: `التفسير: ${q.explanation}` })] }));
+            children.push(
+              new Paragraph({
+                children: [new TextRun({ text: `التفسير: ${q.explanation}`, size: S.exp })],
+              })
+            );
           }
         }
 
         children.push(new Paragraph(" "));
       });
 
-      const doc = new Document({ sections: [{ properties: {}, children }] });
+      const doc = new Document({
+        sections: [{ properties: {}, children }],
+      });
 
       const blob = await Packer.toBlob(doc);
       const fileName = `ورقة-عمل-${data.subject}-${data.topic}.docx`.replaceAll(" ", "-");
@@ -238,7 +291,14 @@ export default function Page() {
         <WorksheetPreview data={data} showAnswers={showAnswers} showExplanations={showExplanations} />
       </div>
 
-      {toast ? <Toast kind={toast.kind} title={toast.title} message={toast.message} onClose={() => setToast(null)} /> : null}
+      {toast ? (
+        <Toast
+          kind={toast.kind}
+          title={toast.title}
+          message={toast.message}
+          onClose={() => setToast(null)}
+        />
+      ) : null}
     </div>
   );
 }
