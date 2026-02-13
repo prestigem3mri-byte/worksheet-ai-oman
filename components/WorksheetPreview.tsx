@@ -4,6 +4,9 @@ export default function WorksheetPreview(props: {
   data: Worksheet | null;
   showAnswers: boolean;
   showExplanations: boolean;
+  contestMinutes: number;
+  contestRunning: boolean;
+  timeLeftSec: number;
 }) {
   const { data } = props;
 
@@ -16,30 +19,44 @@ export default function WorksheetPreview(props: {
     );
   }
 
+  const mm = Math.floor(props.timeLeftSec / 60);
+  const ss = props.timeLeftSec % 60;
+  const timeText = `${String(mm).padStart(2, "0")}:${String(ss).padStart(2, "0")}`;
+
   return (
     <div className="preview card">
-      {/* عنوان الورقة */}
       <div className="previewHead">
         <div>
           <h2 className="h2">{data.title}</h2>
+
           <div className="muted">
-            {data.subject} — {data.grade} — {data.topic}
+            {data.grade} — {data.topic}
+          </div>
+
+          {/* حقول الطالب للـ PDF */}
+          <div className="studentBox">
+            <div>اسم الطالب/ة: ____________________________</div>
+            <div>الصف: {data.grade}</div>
+            <div>الشعبة: ____________</div>
+            <div>التاريخ: ____ / ____ / ____</div>
           </div>
         </div>
-        <div className="muted">عدد الأسئلة: {data.count}</div>
-      </div>
 
-      {/* سطر بيانات الطالب (يظهر في PDF) */}
-      <div className="studentLine">
-        <div>اسم الطالب/ة: ____________________</div>
-        <div>الصف: {data.grade}</div>
-        <div>الشعبة: ________</div>
-        <div>التاريخ: ____ / ____ / ____</div>
+        <div className="rightInfo">
+          <div className="muted">عدد الأسئلة: {data.count}</div>
+
+          {data.mode === "contest" ? (
+            <div className="timerBox">
+              <div className="timerLabel">عداد المسابقة</div>
+              <div className="timerValue">{props.contestRunning ? timeText : `${props.contestMinutes}:00`}</div>
+              <div className="timerHint muted">ابدئي العدّاد من أزرار المسابقة</div>
+            </div>
+          ) : null}
+        </div>
       </div>
 
       <div className="line" />
 
-      {/* الأسئلة */}
       {data.questions.map((q, idx) => (
         <div key={q.id} className="q">
           <div className="qTitle">

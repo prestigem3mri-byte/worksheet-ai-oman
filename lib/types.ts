@@ -14,7 +14,6 @@ export type Question = {
 export type Worksheet = {
   title: string;
   grade: string;
-  subject: string;
   topic: string;
   mode: Mode;
   count: number;

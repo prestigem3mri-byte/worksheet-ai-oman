@@ -10,13 +10,13 @@ export default function Toast(props: {
 }) {
   return (
     <div className={`toast ${props.kind}`}>
-      <div>
-        <div className="toastTitle">{props.title}</div>
-        <div className="toastMsg">{props.message}</div>
+      <div className="toastHead">
+        <b>{props.title}</b>
+        <button className="toastX" onClick={props.onClose}>
+          ✕
+        </button>
       </div>
-      <button className="toastBtn" onClick={props.onClose}>
-        إغلاق
-      </button>
+      <div className="toastMsg">{props.message}</div>
     </div>
   );
 }

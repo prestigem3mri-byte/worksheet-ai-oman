@@ -7,14 +7,20 @@ export async function POST(req: Request) {
   try {
     const body = await req.json();
 
-    const { topic, grade, subject, count, mixed, mode, includeExplanations } = body ?? {};
+    const { topic, grade, count, mixed, mode, includeExplanations } = body ?? {};
 
     if (!process.env.OPENAI_API_KEY) {
-      return NextResponse.json({ error: "OPENAI_API_KEY غير موجود في ملف .env.local" }, { status: 500 });
+      return NextResponse.json(
+        { error: "OPENAI_API_KEY غير موجود في ملف .env.local" },
+        { status: 500 }
+      );
     }
 
-    if (!topic || !grade || !subject || !count) {
-      return NextResponse.json({ error: "بيانات ناقصة: تأكدي من الموضوع/الصف/المادة/العدد" }, { status: 400 });
+    if (!topic || !grade || !count) {
+      return NextResponse.json(
+        { error: "بيانات ناقصة: تأكدي من الموضوع/الصف/العدد" },
+        { status: 400 }
+      );
     }
 
     const client = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
@@ -28,7 +34,6 @@ export async function POST(req: Request) {
 {
   "title": "...",
   "grade": "...",
-  "subject": "...",
   "topic": "...",
   "mode": "practice|contest",
   "count": number,
@@ -37,9 +42,9 @@ export async function POST(req: Request) {
       "id": "q1",
       "type": "mcq|tf|short",
       "question": "...",
-      "options": ["..."],
+      "options": ["..."] (اختياري فقط لأسئلة mcq),
       "answer": "...",
-      "explanation": "..."
+      "explanation": "..." (اختياري)
     }
   ]
 }
@@ -56,7 +61,6 @@ export async function POST(req: Request) {
     const user = `
 المطلوب:
 - الصف: ${grade}
-- المادة: ${subject}
 - الموضوع: ${topic}
 - العدد: ${count}
 - نوع الأسئلة متنوع: ${mixed ? "نعم" : "لا"}
@@ -72,10 +76,8 @@ export async function POST(req: Request) {
         { role: "system", content: system },
         { role: "user", content: user },
       ],
-      // ✅ بدل response_format
-      text: {
-        format: { type: "json_object" },
-      },
+      // ✅ البديل الصحيح لـ response_format
+      text: { format: { type: "json_object" } }, // :contentReference[oaicite:1]{index=1}
       temperature: 0.5,
     });
 
@@ -83,11 +85,17 @@ export async function POST(req: Request) {
     const data = JSON.parse(jsonText);
 
     if (!data?.questions || !Array.isArray(data.questions)) {
-      return NextResponse.json({ error: "الذكاء الاصطناعي أعاد صيغة غير صحيحة. أعيدي المحاولة." }, { status: 500 });
+      return NextResponse.json(
+        { error: "الذكاء الاصطناعي أعاد صيغة غير صحيحة. أعيدي المحاولة." },
+        { status: 500 }
+      );
     }
 
     return NextResponse.json(data, { status: 200 });
   } catch (e: any) {
-    return NextResponse.json({ error: e?.message || "حدث خطأ أثناء توليد الأسئلة" }, { status: 500 });
+    return NextResponse.json(
+      { error: e?.message || "حدث خطأ أثناء توليد الأسئلة" },
+      { status: 500 }
+    );
   }
 }
