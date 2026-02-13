@@ -1,5 +1,4 @@
 export type Mode = "practice" | "contest";
-
 export type QuestionType = "mcq" | "tf" | "short";
 
 export type Question = {
@@ -18,4 +17,14 @@ export type Worksheet = {
   mode: Mode;
   count: number;
   questions: Question[];
+};
+
+export type HistoryItem = {
+  id: string;
+  createdAt: number;
+  grade: string;
+  topic: string;
+  mode: Mode;
+  count: number;
+  worksheet: Worksheet;
 };

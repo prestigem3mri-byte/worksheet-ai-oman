@@ -32,10 +32,9 @@ body{
   border-radius: 14px;
   box-shadow: var(--shadow);
 }
-
 .topCard{padding: 18px 18px 10px}
 
-/* ===== Header (رسمي) ===== */
+/* Header */
 .header{
   padding: 10px 10px 6px;
   border-bottom: 1px solid rgba(148,163,184,.25);
@@ -48,11 +47,7 @@ body{
   gap: 10px;
   flex-wrap:wrap;
 }
-.brandMark{
-  display:flex;
-  gap:10px;
-  align-items:center;
-}
+.brandMark{display:flex;gap:10px;align-items:center}
 .brandDot{
   width: 14px;
   height: 14px;
@@ -62,7 +57,6 @@ body{
 .h1{
   margin:0;
   font-size: 22px;
-  letter-spacing: .2px;
   color: var(--navy);
   font-weight: 900;
 }
@@ -90,22 +84,22 @@ body{
   font-size: 13px;
 }
 
-/* controls */
+/* Controls */
 .grid{
   display:grid;
   grid-template-columns: 1fr 1fr;
   gap: 12px;
   padding: 14px 4px 6px;
 }
-@media (max-width: 860px){
-  .grid{grid-template-columns: 1fr}
-}
+@media (max-width: 860px){ .grid{grid-template-columns: 1fr} }
+
 .field{padding: 8px 10px}
 .label{
   font-weight: 900;
   margin-bottom: 8px;
   color: var(--navy);
 }
+
 .input,.select{
   width:100%;
   padding: 12px 12px;
@@ -149,7 +143,7 @@ body{
 .miniField{min-width: 220px}
 .miniLabel{color:var(--muted); font-weight:800; font-size: 13px; margin-bottom: 6px}
 
-/* actions */
+/* Actions */
 .actions{
   display:flex;
   gap:10px;
@@ -168,7 +162,6 @@ body{
   cursor:pointer;
 }
 .btn:disabled{opacity:.55; cursor:not-allowed}
-
 .btnPrimary{
   background: linear-gradient(180deg, var(--navy) 0%, var(--navy2) 100%);
   color:#fff;
@@ -179,7 +172,7 @@ body{
   color: var(--navy);
 }
 
-/* preview */
+/* Preview */
 .split{margin-top: 14px}
 .preview{padding: 18px}
 .previewHead{
@@ -202,17 +195,6 @@ body{
   font-weight: 800;
   color: #111827;
 }
-
-.timerBox{
-  margin-top: 10px;
-  padding: 12px 14px;
-  border-radius: 12px;
-  background: rgba(11,42,91,.06);
-  border: 1px solid rgba(11,42,91,.20);
-}
-.timerLabel{font-weight: 950; color: var(--navy)}
-.timerValue{font-size: 26px; font-weight: 1000; letter-spacing: 1px; margin-top: 6px}
-.timerHint{margin-top: 6px; font-size: 12px}
 
 .line{
   height:1px;
@@ -252,14 +234,14 @@ body{
 .toastX{border:none; background:transparent; font-size:18px; cursor:pointer}
 .toastMsg{margin-top: 6px; color: var(--muted); line-height: 1.6}
 
-/* print */
+/* Print */
 .no-print{display:block}
 .platformOnly{display:block}
 
 @media print{
   body{background:#fff}
   .no-print{display:none !important}
-  .platformOnly{display:none !important} /* ✅ اسمك يختفي من PDF فقط */
+  .platformOnly{display:none !important} /* ✅ اسمك يختفي في PDF فقط */
   .card{box-shadow:none; border:none}
   .preview{padding: 0}
   .h2{font-size: 26px}

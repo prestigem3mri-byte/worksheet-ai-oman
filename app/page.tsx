@@ -1,22 +1,22 @@
 "use client";
 
-import React, { useEffect, useMemo, useRef, useState } from "react";
-
+import React, { useEffect, useRef, useState } from "react";
 import Header from "@/components/Header";
 import Controls from "@/components/Controls";
 import WorksheetPreview from "@/components/WorksheetPreview";
 import Toast, { ToastKind } from "@/components/Toast";
 
-import type { Mode, Worksheet } from "@/lib/types";
+import type { HistoryItem, Mode, Worksheet } from "@/lib/types";
 
 function uid() {
   return Math.random().toString(36).slice(2, 10);
 }
 
+const HISTORY_KEY = "worksheet_history_v1";
+
 export default function Page() {
   const [topic, setTopic] = useState("");
   const [grade, setGrade] = useState("الصف 1");
-
   const [count, setCount] = useState(5);
   const [mode, setMode] = useState<Mode>("practice");
   const [mixed, setMixed] = useState(true);
@@ -25,63 +25,77 @@ export default function Page() {
   const [loading, setLoading] = useState(false);
   const [data, setData] = useState<Worksheet | null>(null);
 
-  const [toast, setToast] = useState<{
-    kind: ToastKind;
-    title: string;
-    message: string;
-  } | null>(null);
+  const [toast, setToast] = useState<{ kind: ToastKind; title: string; message: string } | null>(null);
 
-  // عداد المسابقة
+  // ✅ History (على نفس الجهاز)
+  const [history, setHistory] = useState<HistoryItem[]>([]);
+
+  useEffect(() => {
+    try {
+      const raw = localStorage.getItem(HISTORY_KEY);
+      if (raw) setHistory(JSON.parse(raw));
+    } catch {}
+  }, []);
+
+  useEffect(() => {
+    try {
+      localStorage.setItem(HISTORY_KEY, JSON.stringify(history));
+    } catch {}
+  }, [history]);
+
+  // ✅ Timer (يظهر بالمنصة فقط)
   const [contestMinutes, setContestMinutes] = useState(10);
-  const [contestRunning, setContestRunning] = useState(false);
-  const [timeLeftSec, setTimeLeftSec] = useState(10 * 60);
+  const [timerRunning, setTimerRunning] = useState(false);
+  const [secondsLeft, setSecondsLeft] = useState(10 * 60);
   const timerRef = useRef<number | null>(null);
 
-  const showAnswers = mode === "practice";
-  const showExplanations = mode === "practice" && includeExplanations;
-
-  // عند تغيير دقائق المسابقة نحدّث الوقت (إذا العداد متوقف)
   useEffect(() => {
-    if (!contestRunning) setTimeLeftSec(contestMinutes * 60);
-  }, [contestMinutes, contestRunning]);
+    if (!timerRunning) setSecondsLeft(contestMinutes * 60);
+  }, [contestMinutes, timerRunning]);
 
-  // تنظيف interval
   useEffect(() => {
     return () => {
       if (timerRef.current) window.clearInterval(timerRef.current);
     };
   }, []);
 
-  function startContestTimer() {
+  function formatTime(sec: number) {
+    const m = Math.floor(sec / 60);
+    const s = sec % 60;
+    return `${String(m).padStart(2, "0")}:${String(s).padStart(2, "0")}`;
+  }
+
+  function startTimer() {
     if (mode !== "contest") return;
-
-    setContestRunning(true);
-
     if (timerRef.current) window.clearInterval(timerRef.current);
+    setTimerRunning(true);
 
     timerRef.current = window.setInterval(() => {
-      setTimeLeftSec((s) => {
-        if (s <= 1) {
+      setSecondsLeft((x) => {
+        if (x <= 1) {
           if (timerRef.current) window.clearInterval(timerRef.current);
           timerRef.current = null;
-          setContestRunning(false);
+          setTimerRunning(false);
           return 0;
         }
-        return s - 1;
+        return x - 1;
       });
     }, 1000);
   }
 
-  function stopContestTimer() {
-    setContestRunning(false);
+  function stopTimer() {
+    setTimerRunning(false);
     if (timerRef.current) window.clearInterval(timerRef.current);
     timerRef.current = null;
   }
 
-  function resetContestTimer() {
-    stopContestTimer();
-    setTimeLeftSec(contestMinutes * 60);
+  function resetTimer() {
+    stopTimer();
+    setSecondsLeft(contestMinutes * 60);
   }
+
+  const showAnswers = mode === "practice";
+  const showExplanations = mode === "practice" && includeExplanations;
 
   async function generate() {
     if (!topic.trim()) {
@@ -91,6 +105,8 @@ export default function Page() {
 
     setLoading(true);
     setToast(null);
+
+    if (mode === "contest") resetTimer();
 
     try {
       const res = await fetch("/api/generate", {
@@ -109,11 +125,7 @@ export default function Page() {
       const out = await res.json();
 
       if (!res.ok) {
-        setToast({
-          kind: "danger",
-          title: "خطأ",
-          message: out?.error || "حدث خطأ أثناء الاتصال بالذكاء الاصطناعي",
-        });
+        setToast({ kind: "danger", title: "خطأ", message: out?.error || "حدث خطأ أثناء الاتصال" });
         return;
       }
 
@@ -135,18 +147,21 @@ export default function Page() {
 
       setData(worksheet);
 
-      // إذا مسابقة: جهزي العداد من البداية
-      if (mode === "contest") {
-        resetContestTimer();
-      }
+      // ✅ حفظ في الأوراق السابقة (آخر 20)
+      const item: HistoryItem = {
+        id: uid(),
+        createdAt: Date.now(),
+        grade: worksheet.grade,
+        topic: worksheet.topic,
+        mode: worksheet.mode,
+        count: worksheet.count,
+        worksheet,
+      };
+      setHistory((prev) => [item, ...prev].slice(0, 20));
 
-      setToast({ kind: "ok", title: "تم", message: "تم توليد الورقة بنجاح." });
+      setToast({ kind: "ok", title: "تم", message: "تم توليد الورقة وحفظها في الأوراق السابقة." });
     } catch (e: any) {
-      setToast({
-        kind: "danger",
-        title: "خطأ",
-        message: e?.message || "حدث خطأ غير متوقع",
-      });
+      setToast({ kind: "danger", title: "خطأ", message: e?.message || "حدث خطأ غير متوقع" });
     } finally {
       setLoading(false);
     }
@@ -157,8 +172,7 @@ export default function Page() {
       setToast({ kind: "danger", title: "تنبيه", message: "ولّدي الأسئلة أولاً." });
       return;
     }
-    // PDF من نافذة الطباعة: Save as PDF
-    window.print();
+    window.print(); // Save as PDF
   }
 
   async function downloadWord() {
@@ -170,7 +184,6 @@ export default function Page() {
     try {
       const { Document, Packer, Paragraph, TextRun } = await import("docx");
 
-      // docx size = نصف نقطة (44 = 22pt)
       const S = {
         title: 52,     // 26pt
         subtitle: 36,  // 18pt
@@ -188,7 +201,6 @@ export default function Page() {
         new Paragraph({ children: [new TextRun({ text: title, bold: true, size: S.title })] }),
         new Paragraph({ children: [new TextRun({ text: subtitle, size: S.subtitle })] }),
         new Paragraph(""),
-        // ✅ حقول الطالب تظهر في Word
         new Paragraph({
           children: [
             new TextRun({
@@ -197,6 +209,9 @@ export default function Page() {
             }),
           ],
         }),
+        data.mode === "contest"
+          ? new Paragraph({ children: [new TextRun({ text: "زمن المسابقة: ______ دقيقة", size: S.meta, bold: true })] })
+          : new Paragraph(""),
         new Paragraph(""),
       ];
 
@@ -212,40 +227,24 @@ export default function Page() {
 
         if (q.options?.length) {
           q.options.forEach((opt) =>
-            children.push(
-              new Paragraph({
-                children: [new TextRun({ text: `• ${opt}`, size: S.opt })],
-              })
-            )
+            children.push(new Paragraph({ children: [new TextRun({ text: `• ${opt}`, size: S.opt })] }))
           );
         }
 
         if (showAnswers) {
-          children.push(
-            new Paragraph({
-              children: [new TextRun({ text: `الإجابة: ${q.answer}`, bold: true, size: S.ans })],
-            })
-          );
-
+          children.push(new Paragraph({ children: [new TextRun({ text: `الإجابة: ${q.answer}`, bold: true, size: S.ans })] }));
           if (showExplanations && q.explanation) {
-            children.push(
-              new Paragraph({
-                children: [new TextRun({ text: `التفسير: ${q.explanation}`, size: S.exp })],
-              })
-            );
+            children.push(new Paragraph({ children: [new TextRun({ text: `التفسير: ${q.explanation}`, size: S.exp })] }));
           }
         }
 
         children.push(new Paragraph(" "));
       });
 
-      const doc = new Document({
-        sections: [{ properties: {}, children }],
-      });
-
+      const doc = new Document({ sections: [{ properties: {}, children }] });
       const blob = await Packer.toBlob(doc);
-      const fileName = `ورقة-عمل-${data.grade}-${data.topic}.docx`.replaceAll(" ", "-");
 
+      const fileName = `ورقة-عمل-${data.grade}-${data.topic}.docx`.replaceAll(" ", "-");
       const url = URL.createObjectURL(blob);
       const a = document.createElement("a");
       a.href = url;
@@ -257,11 +256,7 @@ export default function Page() {
 
       setToast({ kind: "ok", title: "تم", message: "تم تنزيل ملف Word." });
     } catch (e: any) {
-      setToast({
-        kind: "danger",
-        title: "خطأ Word",
-        message: e?.message || "تعذر إنشاء ملف Word",
-      });
+      setToast({ kind: "danger", title: "خطأ Word", message: e?.message || "تعذر إنشاء Word" });
     }
   }
 
@@ -298,13 +293,13 @@ export default function Page() {
 
           {mode === "contest" ? (
             <div className="contestActions">
-              <button className="btn btnGhost" onClick={startContestTimer} disabled={!data || contestRunning}>
+              <button className="btn btnGhost" onClick={startTimer} disabled={!data || timerRunning}>
                 بدء العداد
               </button>
-              <button className="btn btnGhost" onClick={stopContestTimer} disabled={!contestRunning}>
+              <button className="btn btnGhost" onClick={stopTimer} disabled={!timerRunning}>
                 إيقاف
               </button>
-              <button className="btn btnGhost" onClick={resetContestTimer} disabled={!data}>
+              <button className="btn btnGhost" onClick={resetTimer} disabled={!data}>
                 إعادة ضبط
               </button>
             </div>
@@ -314,22 +309,83 @@ export default function Page() {
             {loading ? "جاري التوليد..." : "توليد ورقة العمل"}
           </button>
         </div>
+
+        {/* ✅ العداد في المنصة فقط (لا يظهر في PDF) */}
+        {mode === "contest" ? (
+          <div className="no-print" style={{ padding: "0 10px 14px", display: "flex", justifyContent: "flex-end" }}>
+            <div style={{ border: "1px solid rgba(148,163,184,.5)", borderRadius: 12, padding: "10px 12px" }}>
+              <b style={{ marginInlineEnd: 10 }}>العداد:</b>
+              <span style={{ fontSize: 18, fontWeight: 900 }}>{timerRunning ? formatTime(secondsLeft) : `${contestMinutes}:00`}</span>
+            </div>
+          </div>
+        ) : null}
+      </div>
+
+      {/* ✅ أوراق العمل السابقة (نفس الجهاز فقط) */}
+      <div className="card no-print" style={{ marginTop: 14, padding: 14 }}>
+        <div style={{ display: "flex", justifyContent: "space-between", gap: 10, flexWrap: "wrap" }}>
+          <b>أوراق العمل السابقة</b>
+
+          <button
+            className="btn btnGhost"
+            onClick={() => {
+              if (confirm("حذف كل السجل؟")) setHistory([]);
+            }}
+            disabled={history.length === 0}
+          >
+            مسح السجل
+          </button>
+        </div>
+
+        {history.length === 0 ? (
+          <div className="muted" style={{ marginTop: 10 }}>
+            لا توجد أوراق محفوظة بعد.
+          </div>
+        ) : (
+          <div style={{ marginTop: 10, display: "grid", gap: 10 }}>
+            {history.map((h) => (
+              <div
+                key={h.id}
+                style={{
+                  border: "1px solid rgba(148,163,184,.45)",
+                  borderRadius: 12,
+                  padding: 12,
+                  display: "flex",
+                  justifyContent: "space-between",
+                  gap: 12,
+                  flexWrap: "wrap",
+                  alignItems: "center",
+                }}
+              >
+                <div>
+                  <div style={{ fontWeight: 900 }}>
+                    {h.grade} — {h.topic}
+                  </div>
+                  <div className="muted" style={{ fontSize: 13 }}>
+                    {new Date(h.createdAt).toLocaleString("ar-OM")} • {h.mode === "contest" ? "مسابقة" : "تدريب"} • {h.count} سؤال
+                  </div>
+                </div>
+
+                <div style={{ display: "flex", gap: 10 }}>
+                  <button className="btn btnGhost" onClick={() => setData(h.worksheet)}>
+                    فتح
+                  </button>
+
+                  <button className="btn btnGhost" onClick={() => setHistory((prev) => prev.filter((x) => x.id !== h.id))}>
+                    حذف
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
       </div>
 
       <div className="split">
-        <WorksheetPreview
-          data={data}
-          showAnswers={showAnswers}
-          showExplanations={showExplanations}
-          contestMinutes={contestMinutes}
-          contestRunning={contestRunning}
-          timeLeftSec={timeLeftSec}
-        />
+        <WorksheetPreview data={data} showAnswers={showAnswers} showExplanations={showExplanations} />
       </div>
 
-      {toast ? (
-        <Toast kind={toast.kind} title={toast.title} message={toast.message} onClose={() => setToast(null)} />
-      ) : null}
+      {toast ? <Toast kind={toast.kind} title={toast.title} message={toast.message} onClose={() => setToast(null)} /> : null}
     </div>
   );
 }

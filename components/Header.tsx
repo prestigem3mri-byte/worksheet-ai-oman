@@ -6,13 +6,10 @@ export default function Header() {
           <span className="brandDot" />
           <h1 className="h1">منصة توليد أوراق العمل الذكية</h1>
         </div>
-
         <div className="badge">مبادرة تعليمية رقمية</div>
       </div>
 
-      <p className="sub">
-        متوافقة مع المنهاج العُماني — توليد أسئلة تلقائيًا + تنزيل PDF و Word + وضع مسابقة
-      </p>
+      <p className="sub">متوافقة مع المنهاج العُماني — توليد + تنزيل PDF و Word + وضع مسابقة</p>
 
       {/* يظهر في المنصة فقط ويختفي في PDF */}
       <p className="meta platformOnly">

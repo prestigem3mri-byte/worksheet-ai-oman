@@ -4,9 +4,6 @@ export default function WorksheetPreview(props: {
   data: Worksheet | null;
   showAnswers: boolean;
   showExplanations: boolean;
-  contestMinutes: number;
-  contestRunning: boolean;
-  timeLeftSec: number;
 }) {
   const { data } = props;
 
@@ -19,39 +16,31 @@ export default function WorksheetPreview(props: {
     );
   }
 
-  const mm = Math.floor(props.timeLeftSec / 60);
-  const ss = props.timeLeftSec % 60;
-  const timeText = `${String(mm).padStart(2, "0")}:${String(ss).padStart(2, "0")}`;
-
   return (
     <div className="preview card">
       <div className="previewHead">
         <div>
           <h2 className="h2">{data.title}</h2>
 
+          {/* بدون المادة */}
           <div className="muted">
             {data.grade} — {data.topic}
           </div>
 
-          {/* حقول الطالب للـ PDF */}
+          {/* بيانات الطالب (تظهر في PDF و Word) */}
           <div className="studentBox">
             <div>اسم الطالب/ة: ____________________________</div>
             <div>الصف: {data.grade}</div>
             <div>الشعبة: ____________</div>
             <div>التاريخ: ____ / ____ / ____</div>
           </div>
+
+          {/* سطر الزمن فقط (ثابت) في ورقة المسابقة */}
+          {data.mode === "contest" ? <div className="muted" style={{ marginTop: 10 }}>زمن المسابقة: ______ دقيقة</div> : null}
         </div>
 
         <div className="rightInfo">
           <div className="muted">عدد الأسئلة: {data.count}</div>
-
-          {data.mode === "contest" ? (
-            <div className="timerBox">
-              <div className="timerLabel">عداد المسابقة</div>
-              <div className="timerValue">{props.contestRunning ? timeText : `${props.contestMinutes}:00`}</div>
-              <div className="timerHint muted">ابدئي العدّاد من أزرار المسابقة</div>
-            </div>
-          ) : null}
         </div>
       </div>
 

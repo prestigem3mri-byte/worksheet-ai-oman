@@ -24,7 +24,6 @@ export default function Controls(props: {
   includeExplanations: boolean;
   setIncludeExplanations: (v: boolean) => void;
 
-  // عداد المسابقة (بالدقائق)
   contestMinutes: number;
   setContestMinutes: (v: number) => void;
 }) {
@@ -56,12 +55,7 @@ export default function Controls(props: {
         <div className="row">
           {[5, 10, 15, 20].map((n) => (
             <label key={n} className="pill">
-              <input
-                type="radio"
-                name="count"
-                checked={props.count === n}
-                onChange={() => props.setCount(n)}
-              />
+              <input type="radio" name="count" checked={props.count === n} onChange={() => props.setCount(n)} />
               {n}
             </label>
           ))}
@@ -73,22 +67,12 @@ export default function Controls(props: {
 
         <div className="row">
           <label className="pill">
-            <input
-              type="radio"
-              name="mode"
-              checked={props.mode === "practice"}
-              onChange={() => props.setMode("practice")}
-            />
+            <input type="radio" name="mode" checked={props.mode === "practice"} onChange={() => props.setMode("practice")} />
             وضع تدريبي (مع الإجابات)
           </label>
 
           <label className="pill">
-            <input
-              type="radio"
-              name="mode"
-              checked={props.mode === "contest"}
-              onChange={() => props.setMode("contest")}
-            />
+            <input type="radio" name="mode" checked={props.mode === "contest"} onChange={() => props.setMode("contest")} />
             وضع مسابقة (بدون إجابات)
           </label>
         </div>
@@ -96,7 +80,7 @@ export default function Controls(props: {
         {props.mode === "contest" ? (
           <div className="row" style={{ marginTop: 10 }}>
             <div className="miniField">
-              <div className="miniLabel">عداد المسابقة (دقائق)</div>
+              <div className="miniLabel">زمن المسابقة (دقائق)</div>
               <input
                 className="input"
                 type="number"
@@ -111,11 +95,7 @@ export default function Controls(props: {
 
         <div className="row" style={{ marginTop: 10 }}>
           <label className="check">
-            <input
-              type="checkbox"
-              checked={props.mixed}
-              onChange={(e) => props.setMixed(e.target.checked)}
-            />
+            <input type="checkbox" checked={props.mixed} onChange={(e) => props.setMixed(e.target.checked)} />
             أسئلة متنوعة تلقائياً (اختيار + صح/خطأ + قصيرة)
           </label>
 
