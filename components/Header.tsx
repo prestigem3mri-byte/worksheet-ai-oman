@@ -1,13 +1,20 @@
 export default function Header() {
   return (
     <div className="header">
-      <div className="badge">منصة تعليمية</div>
+      <div className="headerTop">
+        <div className="brandMark">
+          <span className="brandDot" />
+          <h1 className="h1">منصة توليد أوراق العمل الذكية</h1>
+        </div>
 
-      <h1 className="h1">منصة توليد أوراق العمل الذكية</h1>
+        <div className="badge">مبادرة تعليمية رقمية</div>
+      </div>
 
-      <p className="sub">مبادرة تعليمية رقمية — متوافقة مع المنهاج العُماني</p>
+      <p className="sub">
+        متوافقة مع المنهاج العُماني — توليد أسئلة تلقائيًا + تنزيل PDF و Word + وضع مسابقة
+      </p>
 
-      {/* هذا يظهر في المنصة فقط، ويختفي عند طباعة PDF */}
+      {/* يظهر في المنصة فقط ويختفي في PDF */}
       <p className="meta platformOnly">
         إعداد وتصميم: <b>ثريا المعمري</b>
       </p>
